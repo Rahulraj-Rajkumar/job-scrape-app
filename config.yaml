@@ -1,0 +1,122 @@
+# Resume
+resume_path: "./data/resume.pdf"
+
+# Search criteria
+search_queries:
+  - "backend software engineer"
+  - "full stack software engineer"
+  - "software engineer infrastructure"
+  - "software engineer data platforms"
+  - "software engineer AI systems"
+
+# Source toggles
+sources:
+  lever: true
+  greenhouse: true
+  ashby: true
+
+# Scraper runtime controls
+scrape_workers: 3
+scrape:
+  source_workers: 8
+  request_timeout_seconds: 20
+  max_retries: 2
+  backoff_base_seconds: 1.0
+  min_delay_seconds: 0.0
+  max_delay_seconds: 0.0
+
+# Target companies (prioritized in ranking)
+target_companies:
+  - Microsoft
+  - Anduril
+  - MLB
+  - Auger
+  - Visa
+  - Stripe
+  - Datadog
+  - Cloudflare
+  - Figma
+  - Vercel
+  - Netflix
+  - Airbnb
+  - Uber
+  - Duolingo
+  - Discord
+  - Spotify
+  - Block
+  - Notion
+  - Ramp
+
+# Location preferences (weighted in ranking)
+preferred_locations:
+  - "Seattle, WA"
+  - "San Francisco, CA"
+  - "New York, NY"
+  - "Chicago, IL"
+  - "Austin, TX"
+include_remote: true
+country: "US"
+
+# Filters
+max_yoe_required: 4
+seniority_levels:
+  - "entry"
+  - "mid"
+  - "senior"
+excluded_company_types:
+  - "staffing agency"
+  - "recruiting agency"
+  - "consulting firm"
+excluded_companies:
+  - "Accenture"
+  - "Deloitte"
+  - "Wipro"
+  - "Infosys"
+  - "TCS"
+  - "Cognizant"
+  - "Capgemini"
+  - "McKinsey"
+  - "BCG"
+  - "Bain"
+
+# Core skills (fallback if resume parsing fails)
+skills:
+  - React
+  - TypeScript
+  - JavaScript
+  - Java
+  - Spring Boot
+  - Node.js
+  - Python
+  - CosmosDB
+  - Kafka
+  - Azure
+  - REST APIs
+  - Microservices
+  - Distributed Systems
+  - SQL
+  - NoSQL
+  - Git
+  - CI/CD
+  - Docker
+
+# Email
+email:
+  method: "gmail"  # or "sendgrid"
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  smtp_timeout_seconds: 20
+  http_timeout_seconds: 20
+  max_retries: 2
+  sender: ""       # override via .env EMAIL_SENDER
+  recipient: ""    # override via .env EMAIL_RECIPIENT
+  app_password: "" # override via .env EMAIL_APP_PASSWORD
+
+# Output
+results_per_day: 10
+db_path: "./data/jobs.db"
+
+# Optional HTML attachment with next top-scored jobs after email top results
+report_attachment:
+  enabled: true
+  max_jobs: 100

@@ -1,0 +1,17 @@
+# Local env/secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime data (DB, logs, parsed resume cache, attachments)
+data/*
+!data/.gitkeep
+
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+dist/
+build/
+.venv/
+venv/

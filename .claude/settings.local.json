@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile main.py)",
+      "Bash(python -m py_compile src/config.py)",
+      "Bash(python -m py_compile src/resume_parser.py)",
+      "Bash(python -m py_compile src/matcher.py)",
+      "Bash(python -m py_compile src/dedup.py)",
+      "Bash(python3 -m py_compile main.py)",
+      "Bash(python3 -m py_compile src/config.py)",
+      "Bash(python3 -m py_compile src/resume_parser.py)",
+      "Bash(python3 -m py_compile src/matcher.py)",
+      "Bash(python3 -m py_compile src/dedup.py)",
+      "Bash(python3 -m py_compile scripts/discover_slugs.py)",
+      "Bash(python3 -m py_compile src/scrapers/indeed_rss.py)",
+      "Bash(ls /Users/rahulrajkumar/Repositories/job-scrape-app/data/*.parsed.json)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/src/matcher.py)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/src/resume_parser.py)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/src/scrapers/greenhouse.py)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/src/scrapers/ashby.py)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/src/emailer.py)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/main.py)",
+      "Bash(python3 -m py_compile /Users/rahulrajkumar/Repositories/job-scrape-app/src/dedup.py)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}
