@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+.claude/
 
 # Local runtime data (DB, logs, parsed resume cache, attachments)
 data/*
