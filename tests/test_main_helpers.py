@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from main import _dedupe_in_run, _merge_slug_sources
+from main import _dedupe_in_run, _merge_slug_sources, build_scrapers
 from src.scrapers.base import JobListing
 
 
@@ -36,6 +36,22 @@ class MainHelperTests(unittest.TestCase):
         deduped, duplicates = _dedupe_in_run(listings)
         self.assertEqual(len(deduped), 2)
         self.assertEqual(duplicates, 1)
+
+    def test_build_scrapers_includes_direct_sources_without_slugs(self) -> None:
+        config = {
+            "sources": {
+                "lever": False,
+                "greenhouse": False,
+                "ashby": False,
+                "amazon": True,
+                "microsoft": True,
+            },
+            "search_queries": ["software engineer"],
+        }
+        scrapers = build_scrapers(config, {})
+        names = {scraper.name for scraper in scrapers}
+
+        self.assertEqual(names, {"amazon", "microsoft"})
 
 
 if __name__ == "__main__":

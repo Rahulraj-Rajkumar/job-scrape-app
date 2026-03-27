@@ -10,6 +10,9 @@ import pdfplumber
 from loguru import logger
 
 
+PARSER_CACHE_VERSION = 2
+
+
 COMMON_TECH_SKILLS = {
     # Languages
     "python", "java", "javascript", "typescript", "go", "golang", "rust", "c++", "c#",
@@ -88,9 +91,9 @@ def _extract_yoe(text: str) -> int | None:
     # Split text into lines to check surrounding context
     lines = text.split("\n")
     month_pattern = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-    date_range_pattern = (
+    date_range_pattern = re.compile(
         rf"(?:{month_pattern}\s+)?(\d{{4}})\s*[-–—]+\s*"
-        rf"(?:(?:{month_pattern}\s+)?(\d{{4}})|[Pp]resent|[Cc]urrent|[Nn]ow)"
+        rf"(?:(?:{month_pattern}\s+)?(\d{{4}})|([Pp]resent|[Cc]urrent|[Nn]ow))"
     )
 
     # Section headers that indicate non-work experience
@@ -103,7 +106,7 @@ def _extract_yoe(text: str) -> int | None:
 
     current_year = datetime.now().year
     current_section_excluded = False
-    work_start_years: list[int] = []
+    work_year_ranges: list[tuple[int, int]] = []
 
     for line in lines:
         stripped = line.strip()
@@ -126,20 +129,32 @@ def _extract_yoe(text: str) -> int | None:
             current_section_excluded = True
             continue
 
-        matches = re.findall(date_range_pattern, stripped)
-        for match in matches:
+        for match in date_range_pattern.findall(stripped):
             start_year = int(match[0])
-            if 1990 <= start_year <= current_year:
-                work_start_years.append(start_year)
+            end_year = int(match[1]) if match[1] else current_year
+
+            if 1990 <= start_year <= end_year <= current_year:
+                work_year_ranges.append((start_year, end_year))
                 # Reset exclusion flag — we found a valid date in a work section
                 current_section_excluded = False
 
-    if not work_start_years:
+    if not work_year_ranges:
         return None
 
-    earliest_start = min(work_start_years)
-    yoe = current_year - earliest_start
-    logger.debug(f"Inferred {yoe} YOE from work date ranges (earliest: {earliest_start})")
+    merged_ranges: list[tuple[int, int]] = []
+    for start_year, end_year in sorted(work_year_ranges):
+        if not merged_ranges:
+            merged_ranges.append((start_year, end_year))
+            continue
+
+        last_start, last_end = merged_ranges[-1]
+        if start_year <= last_end:
+            merged_ranges[-1] = (last_start, max(last_end, end_year))
+        else:
+            merged_ranges.append((start_year, end_year))
+
+    yoe = sum(end_year - start_year for start_year, end_year in merged_ranges)
+    logger.debug(f"Inferred {yoe} YOE from work date ranges {merged_ranges}")
     return yoe
 
 
@@ -192,7 +207,10 @@ def parse_resume(
     if cache.exists():
         try:
             cached = json.loads(cache.read_text())
-            if cached.get("_hash") == current_hash:
+            if (
+                cached.get("_hash") == current_hash
+                and cached.get("_parser_version") == PARSER_CACHE_VERSION
+            ):
                 logger.info("Using cached resume parse")
                 return cached
         except (json.JSONDecodeError, KeyError):
@@ -217,6 +235,7 @@ def parse_resume(
         "yoe": _extract_yoe(raw_text),
         "raw_text": raw_text,
         "_hash": current_hash,
+        "_parser_version": PARSER_CACHE_VERSION,
     }
 
     # Cache result

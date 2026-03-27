@@ -62,6 +62,50 @@ class MatcherTests(unittest.TestCase):
         self.assertIn("Software Engineer", titles)
         self.assertNotIn("Senior Software Engineer", titles)
 
+    def test_filter_excludes_explicitly_non_us_remote_roles_for_us_search(self) -> None:
+        config = {
+            "excluded_companies": [],
+            "excluded_company_types": [],
+            "max_yoe_required": 10,
+            "country": "US",
+            "include_remote": True,
+            "seniority_levels": ["mid", "senior", "entry"],
+        }
+
+        listings = [
+            JobListing(
+                title="Fullstack Software Engineer",
+                company="Dataiku",
+                location="Germany, Berlin - Remote; Germany, Remote",
+                url="https://example.com/non-us-remote",
+                description="Distributed systems",
+                source="greenhouse",
+            ),
+            JobListing(
+                title="Software Engineer",
+                company="Acme",
+                location="Remote",
+                url="https://example.com/remote-unknown",
+                description="Distributed systems",
+                source="lever",
+            ),
+            JobListing(
+                title="DevOps Engineer II",
+                company="Sezzle",
+                location="Türkiye, Remote",
+                url="https://example.com/remote-turkiye",
+                description="Distributed systems",
+                source="greenhouse",
+            ),
+        ]
+
+        filtered = filter_listings(listings, config)
+        urls = {item.url for item in filtered}
+
+        self.assertNotIn("https://example.com/non-us-remote", urls)
+        self.assertNotIn("https://example.com/remote-turkiye", urls)
+        self.assertIn("https://example.com/remote-unknown", urls)
+
 
 if __name__ == "__main__":
     unittest.main()

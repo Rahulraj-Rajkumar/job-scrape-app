@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections import Counter
 from datetime import datetime, timezone
 from typing import Any
@@ -284,23 +285,63 @@ NON_US_MARKERS = {
     "hong kong",
     "uae",
     "dubai",
+    "colombia",
+    "brazil",
+    "mexico",
+    "argentina",
+    "chile",
+    "turkiye",
+    "turkey",
+    "latam",
+    "emea",
+    "apac",
+    "europe",
+    "european union",
+    "eu",
 }
+
+
+def _has_non_us_marker(loc: str) -> bool:
+    normalized_loc = _normalize_location_text(loc)
+    for marker in NON_US_MARKERS:
+        normalized_marker = _normalize_location_text(marker)
+        if len(marker) <= 3:
+            if re.search(rf"\b{re.escape(marker)}\b", loc):
+                return True
+            if re.search(rf"\b{re.escape(normalized_marker)}\b", normalized_loc):
+                return True
+            continue
+        if marker in loc:
+            return True
+        if normalized_marker in normalized_loc:
+            return True
+    return False
+
+
+def _normalize_location_text(text: str) -> str:
+    return (
+        unicodedata.normalize("NFKD", text)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
+    )
 
 
 def _looks_like_us_location(loc: str) -> bool:
     """Heuristic check if a location string looks like it's in the US."""
-    if any(marker in loc for marker in NON_US_MARKERS):
+    normalized_loc = _normalize_location_text(loc)
+    if _has_non_us_marker(loc):
         return False
-    if "united states" in loc or ", us" in loc:
+    if "united states" in normalized_loc or ", us" in normalized_loc:
         return True
     # Check for US state abbreviations (e.g. "Seattle, WA" or "NY")
-    words = re.findall(r"\b([a-z]{2})\b", loc)
+    words = re.findall(r"\b([a-z]{2})\b", normalized_loc)
     if any(w in US_STATES for w in words):
         return True
     # Common US city names that appear without state
     us_markers = ["new york", "san francisco", "seattle", "chicago", "austin",
                   "los angeles", "boston", "denver", "portland", "atlanta"]
-    if any(m in loc for m in us_markers):
+    if any(m in normalized_loc for m in us_markers):
         return True
     return False
 
@@ -460,9 +501,18 @@ def filter_listings(
         country = config.get("country", "").lower()
         if country == "us" and listing.location:
             loc_lower = listing.location.lower()
+            include_remote = bool(config.get("include_remote", True))
             is_remote = any(kw in loc_lower for kw in ["remote", "anywhere", "distributed"])
             is_us = _looks_like_us_location(loc_lower)
-            if not is_remote and not is_us:
+            has_non_us_marker = _has_non_us_marker(loc_lower)
+
+            if is_remote:
+                # Allow remote only when user wants remote and location is not explicitly non-US.
+                if not include_remote:
+                    continue
+                if has_non_us_marker and not is_us:
+                    continue
+            elif not is_us:
                 continue
 
         filtered.append(listing)

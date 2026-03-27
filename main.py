@@ -16,8 +16,10 @@ from src.matcher import filter_listings, rank_listings, score_listing
 from src.resume_parser import parse_resume
 from src.scrapers import (
     AshbyScraper,
+    AmazonScraper,
     GreenhouseScraper,
     LeverScraper,
+    MicrosoftScraper,
 )
 
 # Configure logging
@@ -101,6 +103,14 @@ def build_scrapers(config: dict, ats_slugs: dict) -> list:
     ashby_all = _merge_slug_sources(ashby_slugs, ats_slugs.get("extra_ashby", []) or [])
     if _source_enabled(config, "ashby", True) and ashby_all:
         scrapers.append(AshbyScraper(config, ashby_all))
+
+    # Amazon (direct source; no ATS slug required)
+    if _source_enabled(config, "amazon", False):
+        scrapers.append(AmazonScraper(config))
+
+    # Microsoft (direct source; no ATS slug required)
+    if _source_enabled(config, "microsoft", False):
+        scrapers.append(MicrosoftScraper(config))
 
     return scrapers
 

@@ -1,10 +1,11 @@
 # Daily Job Scraper & Email Digest
 
-Scrapes jobs from Lever, Greenhouse, and Ashby, filters/ranks them against your resume, and sends a daily email digest.
+Scrapes jobs from Lever, Greenhouse, Ashby, Amazon, and Microsoft, filters/ranks them against your resume, and sends a daily email digest.
 
 ## What This Does
 
 - Scrapes public job boards from multiple ATS providers
+- Includes direct source scrapers for Amazon and Microsoft careers
 - Filters and scores jobs using your resume + preferences in `config.yaml`
 - Deduplicates listings using SQLite (`data/jobs.db`)
 - Sends top results by email
@@ -27,6 +28,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Optional (for Microsoft browser fallback mode):
+
+```bash
+pip install playwright
+playwright install chromium
+```
+
 ### 3. Add your resume
 
 Place your resume at:
@@ -46,6 +54,9 @@ Open `config.yaml` and edit:
 - `preferred_locations`
 - `max_yoe_required`
 - `country`
+- source toggles under `sources` (including `amazon` and `microsoft`)
+- Amazon query controls under `amazon.queries` (defaults are broader SWE terms)
+- Microsoft query controls under `microsoft.queries` and `microsoft.max_pages_per_query`
 
 ### 5. Configure email credentials (optional but recommended)
 

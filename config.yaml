@@ -14,6 +14,37 @@ sources:
   lever: true
   greenhouse: true
   ashby: true
+  amazon: true
+  microsoft: true
+
+# Amazon source options
+amazon:
+  max_pages_per_query: 4
+  page_size: 25
+  sort: "recent"
+  use_global_search_queries: false
+  queries:
+    - "software engineer"
+    - "software development engineer"
+    - "sde"
+
+# Microsoft source options
+microsoft:
+  domain: "microsoft.com"
+  language: "en"
+  max_pages_per_query: 12
+  page_size: 10
+  start_step: 10
+  use_global_search_queries: false
+  queries:
+    - "software engineer"
+    - "software development engineer"
+    - "backend engineer"
+    - "full stack engineer"
+    - "sde"
+  fetch_position_details: true
+  use_playwright_fallback: true
+  playwright_timeout_seconds: 30
 
 # Scraper runtime controls
 scrape_workers: 3
