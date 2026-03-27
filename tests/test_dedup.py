@@ -78,6 +78,91 @@ class DedupStoreTests(unittest.TestCase):
         self.assertEqual(recent[0]["unique_key"], "lever:newer")
         self.assertEqual(recent[1]["unique_key"], "lever:older")
 
+    def test_query_jobs_filters_by_company_source_and_posted_date(self) -> None:
+        older = JobListing(
+            title="Backend Engineer",
+            company="Acme",
+            location="Seattle, WA",
+            url="https://example.com/acme-older",
+            description="Python services",
+            source="lever",
+            job_id="acme-older",
+            posted_date=datetime(2024, 1, 5, tzinfo=timezone.utc),
+        )
+        newer = JobListing(
+            title="Platform Engineer",
+            company="Acme Cloud",
+            location="Remote",
+            url="https://example.com/acme-newer",
+            description="Distributed systems",
+            source="greenhouse",
+            job_id="acme-newer",
+            posted_date=datetime(2025, 4, 10, tzinfo=timezone.utc),
+        )
+        other = JobListing(
+            title="Data Engineer",
+            company="Globex",
+            location="Austin, TX",
+            url="https://example.com/globex",
+            description="Analytics pipelines",
+            source="lever",
+            job_id="globex",
+            posted_date=datetime(2025, 4, 12, tzinfo=timezone.utc),
+        )
+
+        self.store.mark_seen(older, score=72.0)
+        self.store.mark_seen(newer, score=91.0)
+        self.store.mark_seen(other, score=84.0)
+
+        result = self.store.query_jobs(
+            {
+                "company": "Acme",
+                "source": "greenhouse",
+                "posted_from": "2025-01-01",
+                "sort": "score",
+                "direction": "desc",
+            }
+        )
+
+        self.assertEqual(result["filtered_count"], 1)
+        self.assertEqual(result["items"][0]["unique_key"], "greenhouse:acme-newer")
+
+    def test_query_jobs_supports_sorting_and_pagination(self) -> None:
+        for index, score in enumerate([66.0, 88.0, 77.0], start=1):
+            listing = JobListing(
+                title=f"Engineer {index}",
+                company="Acme",
+                location="Seattle, WA",
+                url=f"https://example.com/job-{index}",
+                description="Platform work",
+                source="lever",
+                job_id=f"job-{index}",
+                posted_date=datetime(2025, index, 1, tzinfo=timezone.utc),
+            )
+            self.store.mark_seen(listing, score=score)
+
+        first_page = self.store.query_jobs(
+            {
+                "sort": "score",
+                "direction": "desc",
+                "page_size": "2",
+                "page": "1",
+            }
+        )
+        second_page = self.store.query_jobs(
+            {
+                "sort": "score",
+                "direction": "desc",
+                "page_size": "2",
+                "page": "2",
+            }
+        )
+
+        self.assertEqual([item["score"] for item in first_page["items"]], [88.0, 77.0])
+        self.assertEqual([item["score"] for item in second_page["items"]], [66.0])
+        self.assertTrue(first_page["has_next"])
+        self.assertTrue(second_page["has_previous"])
+
 
 if __name__ == "__main__":
     unittest.main()

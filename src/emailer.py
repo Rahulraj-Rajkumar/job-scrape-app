@@ -48,7 +48,7 @@ EMAIL_TEMPLATE = """
 <div class="container">
   <div class="header">
     <h1>Daily Job Digest</h1>
-    <p>{{ date }} &mdash; {{ count }} New Listings</p>
+    <p>{{ date }} - {{ count }} New Listings</p>
   </div>
   <div class="content">
     {% for item in listings %}
@@ -125,7 +125,7 @@ ADDITIONAL_JOBS_REPORT_TEMPLATE = """
   <div class="wrap">
     <div class="header">
       <h1>Additional Jobs by Score</h1>
-      <p>{{ generated_at }} — Showing {{ count }} jobs ranked after the top emailed results</p>
+      <p>{{ generated_at }} - Showing {{ count }} jobs ranked after the top emailed results</p>
     </div>
 
     <div class="table-wrap">
@@ -175,7 +175,7 @@ def _format_iso_timestamp(raw: Any) -> str:
     if not text:
         return ""
     try:
-        # Accept both \"...Z\" and explicit offsets.
+        # Accept both "...Z" and explicit offsets.
         dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
         return dt.strftime("%Y-%m-%d %H:%M")
     except ValueError:
@@ -257,7 +257,7 @@ def format_email(
         db_unique_companies=(db_stats or {}).get("unique_companies", 0),
     )
 
-    subject = f"Daily Job Digest — {date_str} — {len(render_items)} New Listings"
+    subject = f"Daily Job Digest - {date_str} - {len(render_items)} New Listings"
     return subject, html_body
 
 
@@ -476,10 +476,10 @@ def print_digest(
     db_stats: dict[str, Any] | None = None,
 ) -> None:
     """Print results to console for --dry-run mode."""
-    print(f"\n{'='*60}")
-    print(f"  Daily Job Digest — {datetime.now().strftime('%B %d, %Y')}")
+    print(f"\n{'=' * 60}")
+    print(f"  Daily Job Digest - {datetime.now().strftime('%B %d, %Y')}")
     print(f"  {len(scored_listings)} Top Listings")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     for i, item in enumerate(scored_listings, 1):
         listing = item["listing"]
@@ -492,9 +492,9 @@ def print_digest(
             print(f"     Posted: {listing.posted_date.strftime('%Y-%m-%d')}")
         print()
 
-    print(f"{'─'*60}")
+    print(f"{'-' * 60}")
     print(f"  Total scanned: {total_scanned}")
     print(f"  New listings: {total_new}")
     if db_stats:
         print(f"  All time: {db_stats['total_seen']} jobs tracked across {db_stats['unique_companies']} companies")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")

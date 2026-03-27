@@ -44,6 +44,7 @@ class MainHelperTests(unittest.TestCase):
                 "greenhouse": False,
                 "ashby": False,
                 "amazon": True,
+                "meta": True,
                 "microsoft": True,
             },
             "search_queries": ["software engineer"],
@@ -51,7 +52,7 @@ class MainHelperTests(unittest.TestCase):
         scrapers = build_scrapers(config, {})
         names = {scraper.name for scraper in scrapers}
 
-        self.assertEqual(names, {"amazon", "microsoft"})
+        self.assertEqual(names, {"amazon", "meta", "microsoft"})
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ sources:
   greenhouse: true
   ashby: true
   amazon: true
+  meta: true       # disabled by default; see README note about Meta's robots.txt notice
   microsoft: true
 
 # Amazon source options
@@ -27,6 +28,12 @@ amazon:
     - "software engineer"
     - "software development engineer"
     - "sde"
+
+# Meta source options
+meta:
+  sitemap_url: "https://www.metacareers.com/jobsearch/sitemap.xml"
+  max_jobs: 0        # 0 = scan all job URLs in the public sitemap
+  chunk_size: 25     # detail pages fetched per worker chunk
 
 # Microsoft source options
 microsoft:

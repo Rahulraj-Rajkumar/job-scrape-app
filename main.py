@@ -12,6 +12,11 @@ from loguru import logger
 from src.config import load_config, load_ats_slugs
 from src.dedup import DedupStore
 from src.emailer import format_additional_jobs_report, format_email, print_digest, send_email
+from src.job_browser import (
+    DEFAULT_JOB_BROWSER_HOST,
+    DEFAULT_JOB_BROWSER_PORT,
+    serve_job_browser,
+)
 from src.matcher import filter_listings, rank_listings, score_listing
 from src.resume_parser import parse_resume
 from src.scrapers import (
@@ -19,6 +24,7 @@ from src.scrapers import (
     AmazonScraper,
     GreenhouseScraper,
     LeverScraper,
+    MetaScraper,
     MicrosoftScraper,
 )
 
@@ -34,6 +40,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--backfill", action="store_true", help="Skip dedup for this run and re-score all fetched listings")
     parser.add_argument("--discover", metavar="COMPANY", help="Discover ATS slugs for a company")
     parser.add_argument("--validate-slugs", action="store_true", help="Validate all ATS slugs and remove invalid ones")
+    parser.add_argument("--serve-jobs", action="store_true", help="Serve the saved jobs database in a browser-friendly web UI")
+    parser.add_argument("--host", default=DEFAULT_JOB_BROWSER_HOST, help="Host interface for --serve-jobs")
+    parser.add_argument("--port", type=int, default=DEFAULT_JOB_BROWSER_PORT, help="Port for --serve-jobs")
     parser.add_argument("--config", default="config.yaml", help="Path to config file")
     return parser.parse_args()
 
@@ -107,6 +116,10 @@ def build_scrapers(config: dict, ats_slugs: dict) -> list:
     # Amazon (direct source; no ATS slug required)
     if _source_enabled(config, "amazon", False):
         scrapers.append(AmazonScraper(config))
+
+    # Meta (direct source via public sitemap + job detail pages)
+    if _source_enabled(config, "meta", False):
+        scrapers.append(MetaScraper(config))
 
     # Microsoft (direct source; no ATS slug required)
     if _source_enabled(config, "microsoft", False):
@@ -202,8 +215,11 @@ def run_pipeline(config: dict, ats_slugs: dict, dry_run: bool = False, backfill:
 
         logger.info(f"Top {len(top_results)} results selected")
 
-        # 6. Mark all new listings as seen (not just top results)
-        dedup.mark_batch_seen(scored)
+        # 6. Persist dedup state only for non-dry runs.
+        if dry_run:
+            logger.info("Dry run: leaving dedup database unchanged")
+        else:
+            dedup.mark_batch_seen(scored)
 
         # 7. Output
         stats = dedup.get_stats()
@@ -261,6 +277,15 @@ def main() -> None:
         return
 
     config = load_config(args.config)
+
+    if args.serve_jobs:
+        serve_job_browser(
+            config.get("db_path", "./data/jobs.db"),
+            host=args.host,
+            port=args.port,
+        )
+        return
+
     ats_slugs = load_ats_slugs()
 
     run_pipeline(config, ats_slugs, dry_run=args.dry_run, backfill=args.backfill)

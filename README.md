@@ -1,11 +1,11 @@
 # Daily Job Scraper & Email Digest
 
-Scrapes jobs from Lever, Greenhouse, Ashby, Amazon, and Microsoft, filters/ranks them against your resume, and sends a daily email digest.
+Scrapes jobs from Lever, Greenhouse, Ashby, Amazon, Microsoft, and optional Meta direct source pages, filters/ranks them against your resume, and sends a daily email digest.
 
 ## What This Does
 
 - Scrapes public job boards from multiple ATS providers
-- Includes direct source scrapers for Amazon and Microsoft careers
+- Includes direct source scrapers for Amazon, Microsoft, and optional Meta careers pages
 - Filters and scores jobs using your resume + preferences in `config.yaml`
 - Deduplicates listings using SQLite (`data/jobs.db`)
 - Sends top results by email
@@ -54,9 +54,13 @@ Open `config.yaml` and edit:
 - `preferred_locations`
 - `max_yoe_required`
 - `country`
-- source toggles under `sources` (including `amazon` and `microsoft`)
+- source toggles under `sources` (including `amazon`, `meta`, and `microsoft`)
 - Amazon query controls under `amazon.queries` (defaults are broader SWE terms)
+- Meta crawl controls under `meta.max_jobs` and `meta.chunk_size`
 - Microsoft query controls under `microsoft.queries` and `microsoft.max_pages_per_query`
+
+Meta note:
+The Meta source uses the public job sitemap at `https://www.metacareers.com/jobsearch/sitemap.xml` plus structured job data on each job page. Meta's `robots.txt` also includes an explicit notice restricting automated collection, so the source is present but disabled by default. Enable it only if you are comfortable with and authorized under Meta's terms.
 
 ### 5. Configure email credentials (optional but recommended)
 
@@ -93,6 +97,26 @@ In `config.yaml` set:
 
 ```bash
 ./venv/bin/python main.py
+```
+
+### Start the saved jobs browser
+
+```bash
+./venv/bin/python main.py --serve-jobs --host 127.0.0.1 --port 8000
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000/jobs
+```
+
+The browser lets you filter saved jobs by free text, company, location, source, score range, posted date, and saved date, plus sort by date, score, company, title, location, or source.
+
+JSON is also available at:
+
+```text
+http://127.0.0.1:8000/api/jobs
 ```
 
 ### Backfill run (re-scores fetched jobs, skips DB dedup for this run)
